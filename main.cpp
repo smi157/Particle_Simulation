@@ -6,61 +6,64 @@
 
 
 
-
-
-
-
-
-
+const gravity = 500;
 
 
 //SoA
-// usage: particle_system.pos[0....n] to get the nth particle's variables.
-struct 2D_particle_system{
+// usage: 2D_particle_system.pos[0....n] to get the nth particle's variables.
+struct particle_system_2D{
     std::vector<Vector2> pos_list;
     std::vector<Vector2> vel_list;
     std::vector<Vector2> acc_list;
-    std::vector<Vector2> rad_list;
-    std::vector<Vector2> mass_list;
-    std::vector<Vector2> charge_list;
+    std::vector<int> rad_list;
+    std::vector<int> mass_list;
+    std::vector<int> charge_list;
 
 
-    Vector2 *pos;
-    Vector2 *vel;
-    Vector2 *acc;
-    Vector2 *rad;
-    Vector2 *mass;
-    Vector2 *charge;
+
+
+   void add_particle(Vector2 pos, Vector2 vel={150,150}, Vector2 acc={0,0}, int rad=20, int mass=0, int charge=0){
+    pos_list.push_back(pos);
+    vel_list.push_back(vel);
+    acc_list.push_back(acc);
+    rad_list.push_back(rad);
+    mass_list.push_back(mass);
+    charge_list.push_back(charge);
+   }
+
+   int get_size(){
+    return pos_list.size();
+   }
+
+   void update(float dt){
+    int size = get_size();
+    for (int i=0; i<size; i++){
+        pos_list[i].x+= vel_list[i].x * dt + (0.5)*dt*dt*acc_list[i].x;
+        pos_list[i].y+= vel_list[i].y * dt + (0.5)*dt*dt*acc_list[i].y;
+    }
+   }
+
+   
+
+   
 
 };
 
-// struct Particle{
-//     Vector2 pos;
-
-//     Vector2 vel;
-
-//     Vector2 acc;
-
-//     int mass= 20;
-
-//     int radius =20;
-
-//     float charge=0;
-// };
 
 
-void draw(){
-    for (int i=0; i<pos_list.size(); i++){
-        DrawCircle(particle_system.pos[i].x,particle_system.pos[i].y);
+
+void draw(particle_system_2D &system){
+    for (int i=0; i<system.get_size(); i++){
+        DrawCircle(system.pos_list[i].x,system.pos_list[i].y, system.rad_list[i], YELLOW);
     }
+    
 }
 
-// void update_pos(){
-
-// }
 
 
 int main(){
+
+
 
     // get the coord of the mouse and emplace back with the coord. {}
     // there can be a stretchable line, it determines the velocity of the particle. {}
@@ -74,6 +77,8 @@ int main(){
 
 
 
+    
+    particle_system_2D test;
 
     InitWindow(1280, 720, "Particle_Physics");
 
@@ -90,10 +95,10 @@ int main(){
     ToggleFullscreen();
 
 
-    //std::vector<Particle> particles;
+    
 
 
-    //Color button_color{0,0,0,0};
+   
     Rectangle button = {0, 0, width, height};
 
 
@@ -111,7 +116,7 @@ int main(){
         
         if (CheckCollisionPointRec(mousePos,button)){
             if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
-                particle_system a = {&mousePos,Vector2{0,0}};
+                test.add_particle(mousePos);
             }
         }
 
@@ -122,8 +127,8 @@ int main(){
             DrawFPS(0,0);
             ClearBackground(BLACK);
 
-            draw();
-            //update_pos();
+            draw(test);
+            test.update(delta_time);
             
 
         
