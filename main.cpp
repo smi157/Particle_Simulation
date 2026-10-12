@@ -13,46 +13,65 @@ const float gravity = 500;
 // usage: 2D_particle_system.pos[0....n] to get the nth particle's variables.
 struct particle_system_2D{
     std::vector<Vector2> pos_list;
+    std::vector<Vector2> prev_pos_list; // for verlet integration
     std::vector<Vector2> vel_list;
     std::vector<Vector2> acc_list;
     std::vector<int> rad_list;
-    std::vector<int> mass_list;
+    std::vector<float> mass_list;
     std::vector<int> charge_list;
 
+    std::vector<bool> just_added;
 
 
 
-   void add_particle(Vector2 pos, Vector2 vel={150,150}, Vector2 acc={0,0}, int rad=20, int mass=0, int charge=0){
+
+   void add_particle(Vector2 pos, Vector2 vel={150,150}, Vector2 acc={0,0}, int rad=20, int mass=20, int charge=0){
     pos_list.push_back(pos);
+    prev_pos_list.push_back(pos);
     vel_list.push_back(vel);
     acc_list.push_back(acc);
     rad_list.push_back(rad);
     mass_list.push_back(mass);
     charge_list.push_back(charge);
+    just_added.push_back(true);
    }
 
-   int get_size(){
+   int get_size() const{
     return pos_list.size();
    }
-
-   void update(float dt){
-    int size = get_size();
-    for (int i=0; i<size; i++){
-        pos_list[i].x+= vel_list[i].x * dt + (0.5)*dt*dt*acc_list[i].x;
-        pos_list[i].y+= vel_list[i].y * dt + (0.5)*dt*dt*acc_list[i].y;
-    }
-   }
-
-   
-
-   
-
 };
 
 
+void update_pos(particle_system_2D &system, float dt){
+    int size = system.get_size();
 
+    for (int i = 0; i < size; i++){
+        Vector2 pos = system.pos_list[i];
+        Vector2 acc = system.acc_list[i];
 
-void draw(particle_system_2D &system){
+        // Making this change because otherwise prev_pos and current pos becomes the same and the velocity equals to zero all the time.
+        if (system.just_added[i]){
+            system.prev_pos_list[i].x = pos.x - system.vel_list[i].x * dt;
+            system.prev_pos_list[i].y = pos.y - system.vel_list[i].y * dt;
+            system.just_added[i] = false;
+        }
+
+        Vector2 prev = system.prev_pos_list[i];
+
+        Vector2 next;
+        next.x = 2.0f * pos.x - prev.x + acc.x * dt * dt;
+        next.y = 2.0f * pos.y - prev.y + acc.y * dt * dt;
+
+        system.prev_pos_list[i] = pos;
+        system.pos_list[i]      = next;
+
+        system.vel_list[i].x = (next.x - pos.x) / dt;
+        system.vel_list[i].y = (next.y - pos.y) / dt;
+    }
+}
+
+// using both const and & to pass it like no-copy and read-only.
+void draw(const particle_system_2D &system){
     for (int i=0; i<system.get_size(); i++){
         DrawCircle(system.pos_list[i].x,system.pos_list[i].y, system.rad_list[i], YELLOW);
     }
@@ -128,7 +147,7 @@ int main(){
             ClearBackground(BLACK);
 
             draw(test);
-            test.update(delta_time);
+            update_pos(test,delta_time);
             
 
         
