@@ -6,7 +6,7 @@
 
 
 
-const gravity = 500;
+const float gravity = 500;
 
 
 //SoA
