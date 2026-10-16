@@ -7,10 +7,15 @@
 
 
 const float gravity = 500;
+const float restitution_particle_particle = 1;
+const float restitution_particle_wall = 1;
+
+
 
 
 //SoA
-// usage: 2D_particle_system.pos[0....n] to get the nth particle's variables.
+// usage: particle_system_2D.pos_list[0....n] to get the nth particle's posiiton.
+// Same for other variables.
 struct particle_system_2D{
     std::vector<Vector2> pos_list;
     std::vector<Vector2> prev_pos_list; // for verlet integration
@@ -25,7 +30,7 @@ struct particle_system_2D{
 
 
 
-   void add_particle(Vector2 pos, Vector2 vel={150,150}, Vector2 acc={0,0}, int rad=20, int mass=20, int charge=0){
+   void add_particle(Vector2 pos, Vector2 vel={500,150}, Vector2 acc={0,gravity}, int rad=20, int mass=20, int charge=0){
     pos_list.push_back(pos);
     prev_pos_list.push_back(pos);
     vel_list.push_back(vel);
@@ -42,32 +47,74 @@ struct particle_system_2D{
 };
 
 
-void update_pos(particle_system_2D &system, float dt){
+void update_pos(particle_system_2D &system, float dt,float width,float height){
     int size = system.get_size();
 
     for (int i = 0; i < size; i++){
-        Vector2 pos = system.pos_list[i];
-        Vector2 acc = system.acc_list[i];
+        
 
         // Making this change because otherwise prev_pos and current pos becomes the same and the velocity equals to zero all the time.
+        // the particle will not have a prev position when first added.
         if (system.just_added[i]){
-            system.prev_pos_list[i].x = pos.x - system.vel_list[i].x * dt;
-            system.prev_pos_list[i].y = pos.y - system.vel_list[i].y * dt;
+            system.prev_pos_list[i].x = system.pos_list[i].x - system.vel_list[i].x * dt;
+            system.prev_pos_list[i].y = system.pos_list[i].y - system.vel_list[i].y * dt;
             system.just_added[i] = false;
         }
 
-        Vector2 prev = system.prev_pos_list[i];
+        
 
         Vector2 next;
-        next.x = 2.0f * pos.x - prev.x + acc.x * dt * dt;
-        next.y = 2.0f * pos.y - prev.y + acc.y * dt * dt;
+        next.x = 2.0f * system.pos_list[i].x - system.prev_pos_list[i].x + system.acc_list[i].x * dt * dt;
+        next.y = 2.0f * system.pos_list[i].y - system.prev_pos_list[i].y + system.acc_list[i].y * dt * dt;
 
-        system.prev_pos_list[i] = pos;
-        system.pos_list[i]      = next;
+        system.prev_pos_list[i] = system.pos_list[i];
 
-        system.vel_list[i].x = (next.x - pos.x) / dt;
-        system.vel_list[i].y = (next.y - pos.y) / dt;
+
+        system.vel_list[i].x = (next.x - system.pos_list[i].x) / dt;
+        system.vel_list[i].y = (next.y - system.pos_list[i].y) / dt;
+
+
+        system.pos_list[i] = next;
+
+        
+
+
+
+
+        
+
+        // right wall
+        if (system.pos_list[i].x + system.rad_list[i] >= width){
+            float vx = system.pos_list[i].x - system.prev_pos_list[i].x;
+            system.pos_list[i].x = width - system.rad_list[i];
+            system.prev_pos_list[i].x = system.pos_list[i].x + vx * restitution_particle_wall;
+        }
+        // left wall
+        if (system.pos_list[i].x - system.rad_list[i] <= 0){
+            float vx = system.pos_list[i].x - system.prev_pos_list[i].x;
+            system.pos_list[i].x = system.rad_list[i];
+            system.prev_pos_list[i].x = system.pos_list[i].x + vx * restitution_particle_wall;
+        }
+        // bottom
+        if (system.pos_list[i].y + system.rad_list[i] >= height){
+            float vy = system.pos_list[i].y - system.prev_pos_list[i].y;
+            system.pos_list[i].y = height - system.rad_list[i];
+            system.prev_pos_list[i].y = system.pos_list[i].y + vy * restitution_particle_wall;
+        }
+        // top
+        if (system.pos_list[i].y - system.rad_list[i] <= 0){
+            float vy = system.pos_list[i].y - system.prev_pos_list[i].y;
+            system.pos_list[i].y = system.rad_list[i];
+            system.prev_pos_list[i].y = system.pos_list[i].y + vy * restitution_particle_wall;
+        }
+
+
+        
+
+        
     }
+
+    
 }
 
 // using both const and & to pass it like no-copy and read-only.
@@ -83,15 +130,13 @@ void draw(const particle_system_2D &system){
 int main(){
 
 
-
-    // get the coord of the mouse and emplace back with the coord. {}
+    // collision, grid system, make a restitution slider {}
     // there can be a stretchable line, it determines the velocity of the particle. {}
     // idk about acc right now to hwo to determine it. {}
     // can be fluid or air sim when launching the particles. {}
-    // there can also be 3d sim {}
+    // there can also be 3d and 1d sim {}
     // normal kinetmics equations, spring, centripedal force, gravity, electric, maybe nuclear {}
-    // LAAMPS library implementation {}
-    // optimizations {}
+    // optimizations(SIMD vectorizartion, gpu compute path) {}
     
 
 
@@ -147,7 +192,7 @@ int main(){
             ClearBackground(BLACK);
 
             draw(test);
-            update_pos(test,delta_time);
+            update_pos(test,delta_time,width,height);
             
 
         
