@@ -2,29 +2,14 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <vector>
-#include <unordered_map>
-#include "include/particle.hpp"
+#include "include/particle_system.hpp"
 #include "include/grid.hpp"
 
 
 
 
+
 int main(){
-
-
-    // collision, grid system, make a restitution slider {}
-    // there can be a stretchable line, it determines the velocity of the particle. {}
-    // idk about acc right now to hwo to determine it. {}
-    // can be fluid or air sim when launching the particles. {}
-    // there can also be 3d and 1d sim {}
-    // normal kinetmics equations, spring, centripedal force, gravity, electric, maybe nuclear {}
-    // optimizations(SIMD vectorizartion, gpu compute path) {}
-    
-
-
-
-    
-    particle_system_2D test;
 
     InitWindow(1280, 720, "Particle_Physics");
 
@@ -43,7 +28,12 @@ int main(){
 
     
 
+    particle_system_2D test;
 
+    
+    int max_rad = 20;
+    double cell_size = 2.0 * max_rad;
+    grid Grid{cell_size, width, height};
    
     Rectangle button = {0, 0, width, height};
 
@@ -61,11 +51,27 @@ int main(){
 
         
         if (CheckCollisionPointRec(mousePos,button)){
-            if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
+            if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)){        
                 test.add_particle(mousePos);
+
+                int new_rad = test.rad_list.back();
+                if (new_rad > max_rad) {
+                    max_rad = new_rad;
+                    cell_size = 2.0 * max_rad;
+                    Grid = grid(cell_size, width, height);
+                }
+                
+
             }
         }
 
+        update_pos(test,delta_time);
+        collision_to_wall(test,delta_time,width,height);
+        
+
+        Grid.build(test);
+
+        collision_to_particle(test,Grid);
 
 
         BeginDrawing();
@@ -74,13 +80,6 @@ int main(){
             ClearBackground(BLACK);
 
             draw(test);
-            update_pos(test,delta_time);
-            collision_to_wall(test,delta_time,width,height);
-        
-
-
-
-
 
         EndDrawing();
 
