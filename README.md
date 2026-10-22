@@ -9,7 +9,8 @@ Work In Progress
 
 TO-DO
 
-- collision, grid system(spatial grid), make a restitution slider. {}
+- collision, grid system(spatial grid) {X}
+- make a restitution slider. {}
 - there can be sliders for the current particle that will be added(mass,charge,etc...) {}
 - there can be a stretchable line, it determines the velocity of the particle. {}
 - Add fluid and gas sim. {}
