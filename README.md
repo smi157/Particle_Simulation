@@ -1,5 +1,9 @@
 # Particle_Simulation
 
+
+
+AI did most of the math calculations, other stuff like code structures, code logic, and optimizations are done by me.
+
 Work In Progress
 
 

@@ -4,8 +4,8 @@
 #include <vector>
 
 inline const float gravity = 500;
-inline const float restitution_particle_particle = 1;
-inline const float restitution_particle_wall = 0.9;
+inline const float restitution_particle_particle = 0.75;
+inline const float restitution_particle_wall = 0.75;
 
 
 
@@ -132,11 +132,15 @@ inline void resolve_pair(particle_system_2D &system, int i, int j) {
         system.pos_list[j].x - system.pos_list[i].x,
         system.pos_list[j].y - system.pos_list[i].y
     };
+
+
     float r_sum = system.rad_list[i] + system.rad_list[j];
     float dist2 = d.x*d.x + d.y*d.y;
+
     if (dist2 >= r_sum*r_sum || dist2 < 1e-6f) return;
 
     float dist = std::sqrt(dist2);
+
     Vector2 nrm = { d.x / dist, d.y / dist };
     float overlap = r_sum - dist;
 
@@ -176,4 +180,3 @@ inline void resolve_pair(particle_system_2D &system, int i, int j) {
         system.pos_list[j].y - dp_j.y
     };
 }
-
