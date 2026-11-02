@@ -9,9 +9,9 @@ AI did most of the math calculations for verlet integration and impulse calculat
 
 
 ## Optimizations
--SIMD vectorization 
--gpu compute path
--spatial grid
+- SIMD vectorization 
+- gpu compute path
+- spatial grid
 
 
 
