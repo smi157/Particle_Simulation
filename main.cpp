@@ -1,9 +1,10 @@
-#include <iostream>
 #include <raylib.h>
 #include <raymath.h>
-#include <vector>
 #include "include/particle_system.hpp"
 #include "include/grid.hpp"
+
+#define RAYGUI_IMPLEMENTATION
+#include <raygui.h>
 
 
 
@@ -30,12 +31,21 @@ int main(){
 
     particle_system_2D test;
 
+    const int substeps =4;
+    const int iterations = 3;
+    const float vel_damp = 0.999;
+
+
     
-    int max_rad = 20;
-    double cell_size = 2.0 * max_rad;
+    float curr_rad = 20;
+    float true_max_rad = curr_rad;
+
+
+    double cell_size = 2.0 * curr_rad;
     grid Grid{cell_size, width, height};
    
-    Rectangle button = {0, 0, width, height};
+    Rectangle button_to_spawn_particle = {0, 0, width, height};
+    Rectangle slider_hitbox = { 200, 170, 400, 30 };
 
 
 
@@ -45,34 +55,50 @@ int main(){
 
         float delta_time = GetFrameTime();
 
+        float substep_dt = delta_time/substeps;
+
         Vector2 mousePos = GetMousePosition();
 
 
 
         
-        if (CheckCollisionPointRec(mousePos,button)){
-            if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)){        
-                test.add_particle(mousePos);
+        if (CheckCollisionPointRec(mousePos,button_to_spawn_particle) && !CheckCollisionPointRec(mousePos,slider_hitbox)){
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                test.add_particle(mousePos,curr_rad);
 
-                int new_rad = test.rad_list.back();
-                if (new_rad > max_rad) {
-                    max_rad = new_rad;
-                    cell_size = 2.0 * max_rad;
-                    Grid = grid(cell_size, width, height);
+                if (curr_rad>true_max_rad){
+                    true_max_rad= curr_rad;
                 }
-                
-
             }
         }
 
-        update_pos(test,delta_time);
-        collision_to_wall(test,delta_time,width,height);
+
+
         
 
-        Grid.build(test);
+        double desired_cell = 2.0 * true_max_rad;
+        
+        if (desired_cell != Grid.cell_size) {
+            cell_size = desired_cell;
+            Grid = grid(cell_size, width, height);
+        }
 
-        collision_to_particle(test,Grid);
 
+        
+
+        for (int s = 0; s < substeps; ++s) {
+            update_pos(test, substep_dt,vel_damp);
+            collision_to_wall(test, substep_dt, width, height);
+
+            for (int it = 0; it < iterations; ++it) {
+                Grid.build(test);
+                collision_to_particle(test, Grid);
+                // Re-clamp to walls after particle pushes: a pair resolution
+                // can shove a particle back through a wall.
+            }
+        }
+
+        
 
         BeginDrawing();
 
@@ -80,6 +106,8 @@ int main(){
             ClearBackground(BLACK);
 
             draw(test);
+
+            GuiSlider(slider_hitbox, "0.0", "200.0", &curr_rad, 0.0f, 200.0f);
 
         EndDrawing();
 

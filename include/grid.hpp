@@ -16,10 +16,10 @@ struct grid{
 
     // bucket[i] = list of particle indices in cell i
     //indexed by row * num_cols + col
-    // can be look like this : [[1,3,5],[6,7,2],...]
+    // can look like this : [[1,3,5],[6,7,2],...]
     std::vector<std::vector<int>> bucket;
 
-    std::vector<std::array<int,5>> neighbors;   // num_cells entries, -1 = unused
+    std::vector<std::array<int,4>> neighbors;   // num_cells entries, -1 = unused
 
     grid(double cell_size, float width, float height)
         : cell_size(cell_size),
@@ -39,7 +39,7 @@ struct grid{
     void resize(){
         bucket.assign(num_cells, {});
 
-        neighbors.assign(num_cells, {-1, -1, -1, -1, -1});
+        neighbors.assign(num_cells, {-1, -1, -1, -1});
 
     }
 
@@ -58,7 +58,9 @@ struct grid{
 
     void build(particle_system_2D &system) {
         clear();
+
         int n = system.get_size();
+
         for (int i = 0; i < n; ++i) {
             int c = cell_of(system.pos_list[i].x, system.pos_list[i].y);
             bucket[c].push_back(i);
@@ -67,7 +69,7 @@ struct grid{
 
     
 
-    //half neighbor checking, puts the current cell and the 4 adjacent ones to the neighbor list. total 5 entries.
+    //half neighbor checking, puts the 4 adjacent cells to the neighbor list.
     void build_neighbors() {
         
 
@@ -76,9 +78,11 @@ struct grid{
         for (int c = 0; c < num_cells; ++c) {
             int row = c / num_cols, col = c % num_cols;
             int n = 0;
-            //right of the current cell
-            neighbors[c][n] = c;
+
+           
+            
             if (col + 1 < num_cols) {
+                //right of the current cell
                 neighbors[c][n++] = c + 1;
             }
             
@@ -89,11 +93,14 @@ struct grid{
                     //bottom-left of the current cell
                     neighbors[c][n++] = below - 1;
                 }
+
                 //below of the current cell
                 neighbors[c][n++] = below;
-                //bottom-right of the current cell
 
+
+                
                 if (col + 1 < num_cols) {
+                    //bottom-right of the current cell
                     neighbors[c][n++] = below + 1;
                 }
                 
@@ -130,6 +137,7 @@ inline void collision_to_particle(particle_system_2D &system, const grid &Grid) 
             if (nc ==-1) continue;  // unused(no neighbor)
 
             const std::vector<int> &N = Grid.bucket[nc];
+            
             for (int i : B){
                 for (int j : N){
                     resolve_pair(system, i, j);

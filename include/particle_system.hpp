@@ -6,7 +6,7 @@
 
 inline const float gravity = 500;
 inline const float restitution_particle_particle = 0.75;
-inline const float restitution_particle_wall = 0.75;
+inline const float restitution_particle_wall = 0.90;
 
 
 
@@ -29,7 +29,7 @@ struct particle_system_2D{
     
 
 
-   void add_particle(Vector2 pos, Vector2 vel={500,150}, Vector2 acc={0,gravity}, int rad=20, int mass=20, int charge=0){
+   void add_particle(Vector2 pos, Vector2 vel={500,150}, Vector2 acc={0,gravity}, float rad=20, int mass=20, int charge=0){
     pos_list.push_back(pos);
     prev_pos_list.push_back(pos);
     vel_list.push_back(vel);
@@ -37,12 +37,25 @@ struct particle_system_2D{
     rad_list.push_back(rad);
     mass_list.push_back(mass);
     charge_list.push_back(charge);
+
+   
     
     
-
-
     just_added.push_back(true);
    }
+
+   void add_particle(Vector2 pos, float rad){
+        pos_list.push_back(pos);
+        prev_pos_list.push_back(pos);
+        vel_list.push_back({500,150});
+        acc_list.push_back({0,gravity});
+        rad_list.push_back(rad);
+        mass_list.push_back(20);
+        charge_list.push_back(0);
+
+        just_added.push_back(true);
+
+    }
 
    int get_size() const{
     return pos_list.size();
@@ -52,7 +65,7 @@ struct particle_system_2D{
 
 
 
-void update_pos(particle_system_2D &system, float dt){
+inline void update_pos(particle_system_2D &system, float dt, float vel_damp){
     int size = system.get_size();
 
     for (int i = 0; i < size; i++){
@@ -78,6 +91,10 @@ void update_pos(particle_system_2D &system, float dt){
         system.vel_list[i].x = (next.x - system.pos_list[i].x) / dt;
         system.vel_list[i].y = (next.y - system.pos_list[i].y) / dt;
 
+        // apply damping to the implicit velocity:
+        next.x = system.pos_list[i].x + (next.x - system.pos_list[i].x) * vel_damp;
+        next.y = system.pos_list[i].y + (next.y - system.pos_list[i].y) * vel_damp;
+
 
         system.pos_list[i] = next;
         
@@ -87,14 +104,14 @@ void update_pos(particle_system_2D &system, float dt){
 }
 
 // using both "const" and "&" to pass it like read-only and no-copy.
-void draw(const particle_system_2D &system){
+inline void draw(const particle_system_2D &system){
     for (int i=0; i<system.get_size(); i++){
         DrawCircle(system.pos_list[i].x,system.pos_list[i].y, system.rad_list[i], YELLOW);
     }
     
 }
 
-void collision_to_wall(particle_system_2D &system, float dt,float width,float height){
+inline void collision_to_wall(particle_system_2D &system, float dt,float width,float height){
     int size = system.get_size();
 
     for (int i = 0; i < size; i++){
@@ -147,14 +164,29 @@ inline void resolve_pair(particle_system_2D &system, int i, int j) {
 
     float m_i = system.mass_list[i];
     float m_j = system.mass_list[j];
+
+
+
     float total = m_i + m_j;
     float corr_i = overlap * (m_j / total);
     float corr_j = overlap * (m_i / total);
 
+
+
+
+    // Prevents jitter 
     system.pos_list[i].x -= nrm.x * corr_i;
     system.pos_list[i].y -= nrm.y * corr_i;
     system.pos_list[j].x += nrm.x * corr_j;
     system.pos_list[j].y += nrm.y * corr_j;
+
+    system.prev_pos_list[i].x -= nrm.x * corr_i;
+    system.prev_pos_list[i].y -= nrm.y * corr_i;
+    system.prev_pos_list[j].x += nrm.x * corr_j;
+    system.prev_pos_list[j].y += nrm.y * corr_j; 
+
+
+
 
     Vector2 dp_i = {
         system.pos_list[i].x - system.prev_pos_list[i].x,
@@ -164,9 +196,15 @@ inline void resolve_pair(particle_system_2D &system, int i, int j) {
         system.pos_list[j].x - system.prev_pos_list[j].x,
         system.pos_list[j].y - system.prev_pos_list[j].y
     };
+
+
     float vn = (dp_j.x - dp_i.x) * nrm.x + (dp_j.y - dp_i.y) * nrm.y;
     if (vn > 0) return;
+
+
     float impulse = -(1.0f + restitution_particle_particle) * vn / (1.0f/m_i + 1.0f/m_j);
+
+
     dp_i.x -= (impulse / m_i) * nrm.x;
     dp_i.y -= (impulse / m_i) * nrm.y;
     dp_j.x += (impulse / m_j) * nrm.x;
