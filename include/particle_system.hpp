@@ -18,9 +18,9 @@ struct particle_system_2D{
     std::vector<Vector2> prev_pos_list; // for verlet integration
     std::vector<Vector2> vel_list;
     std::vector<Vector2> acc_list;
-    std::vector<int> rad_list;
+    std::vector<float> rad_list;
     std::vector<float> mass_list;
-    std::vector<int> charge_list;
+    std::vector<float> charge_list;
     
 
     std::vector<bool> just_added;
@@ -29,7 +29,7 @@ struct particle_system_2D{
     
 
 
-   void add_particle(Vector2 pos, Vector2 vel={500,150}, Vector2 acc={0,gravity}, float rad=20, int mass=20, int charge=0){
+   void add_particle(Vector2 pos, Vector2 vel={500,150}, Vector2 acc={0,gravity}, float rad=20, float mass=20, float charge=0){
     pos_list.push_back(pos);
     prev_pos_list.push_back(pos);
     vel_list.push_back(vel);
@@ -44,13 +44,13 @@ struct particle_system_2D{
     just_added.push_back(true);
    }
 
-   void add_particle(Vector2 pos, float rad){
+   void add_particle(Vector2 pos, float rad, float mass){
         pos_list.push_back(pos);
         prev_pos_list.push_back(pos);
         vel_list.push_back({500,150});
         acc_list.push_back({0,gravity});
         rad_list.push_back(rad);
-        mass_list.push_back(20);
+        mass_list.push_back(mass);
         charge_list.push_back(0);
 
         just_added.push_back(true);
@@ -142,6 +142,9 @@ inline void collision_to_wall(particle_system_2D &system, float dt,float width,f
     }
 }
 
+
+
+// couloumb force can be added
 
 
 

@@ -40,12 +40,15 @@ int main(){
     float curr_rad = 20;
     float true_max_rad = curr_rad;
 
+    float curr_mass=20;
+
 
     double cell_size = 2.0 * curr_rad;
     grid Grid{cell_size, width, height};
    
     Rectangle button_to_spawn_particle = {0, 0, width, height};
-    Rectangle slider_hitbox = { 200, 170, 400, 30 };
+    Rectangle slider_hitbox_rad = { 200, 170, 400, 30 };
+    Rectangle slider_hitbox_mass = {250, 210, 400, 30};
 
 
 
@@ -62,9 +65,9 @@ int main(){
 
 
         
-        if (CheckCollisionPointRec(mousePos,button_to_spawn_particle) && !CheckCollisionPointRec(mousePos,slider_hitbox)){
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-                test.add_particle(mousePos,curr_rad);
+        if (CheckCollisionPointRec(mousePos,button_to_spawn_particle) && !CheckCollisionPointRec(mousePos,slider_hitbox_rad) && !CheckCollisionPointRec(mousePos,slider_hitbox_mass)){
+            if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
+                test.add_particle(mousePos,curr_rad,curr_mass);
 
                 if (curr_rad>true_max_rad){
                     true_max_rad= curr_rad;
@@ -93,8 +96,7 @@ int main(){
             for (int it = 0; it < iterations; ++it) {
                 Grid.build(test);
                 collision_to_particle(test, Grid);
-                // Re-clamp to walls after particle pushes: a pair resolution
-                // can shove a particle back through a wall.
+                
             }
         }
 
@@ -107,7 +109,9 @@ int main(){
 
             draw(test);
 
-            GuiSlider(slider_hitbox, "0.0", "200.0", &curr_rad, 0.0f, 200.0f);
+            GuiSlider(slider_hitbox_rad, "0.0", "200.0", &curr_rad, 0.0f, 200.0f);
+            GuiSlider(slider_hitbox_mass, "0.0", "200.0", &curr_mass, 0.0f, 200.0f);
+
 
         EndDrawing();
 
