@@ -4,7 +4,7 @@
 **Work In Progress**
 
 
-AI did most of the math calculations for verlet integration and impulse calculations for particles after collision, other stuff like code structures, code logic, and optimizations are done by me.
+AI did most of the math calculations for verlet integration and impulse calculations for particles after collision. Other stuff like code structures, code logic, and optimizations are done by me.
 
 
 
@@ -38,8 +38,8 @@ Raygui source code can be found here: https://github.com/raysan5/raygui
 
 
 
-**If the raylib library was installed gloablly and Raygui was compiled from the source code:**
+**If the raylib library was installed globally and Raygui was compiled from the source code:**
 
 - g++ main.cpp -o test -I"Raygui src folder path" -L"Raygui folder path" -lraylib
 
-- If the raylib was also compiled from source you can link it to the end.
+- If the raylib was also compiled from source, it can be linked to the end.
