@@ -111,6 +111,7 @@ int main(){
 
             GuiSlider(slider_hitbox_rad, "0.0", "200.0", &curr_rad, 0.0f, 200.0f);
             GuiSlider(slider_hitbox_mass, "0.0", "200.0", &curr_mass, 0.0f, 200.0f);
+            DrawText(TextFormat("Particle: %d", test.get_size()),600,600,50, YELLOW);
 
 
         EndDrawing();

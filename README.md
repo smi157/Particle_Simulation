@@ -25,3 +25,21 @@ AI did most of the math calculations for verlet integration and impulse calculat
 - Add fluid and gas sim. {}
 - Add 3D and 1D sim {}
 - Normal kinematics equations, spring, centripedal force, gravity, electromagnetic {}
+
+
+
+
+## COMPILE
+
+
+
+
+Raygui source code can be found here: https://github.com/raysan5/raygui
+
+
+
+**If the raylib library was installed gloablly and Raygui was compiled from the source code:**
+
+- g++ main.cpp -o test -I"Raygui src folder path" -L"Raygui folder path" -lraylib
+
+- If the raylib was also compiled from source you can link it to the end.
